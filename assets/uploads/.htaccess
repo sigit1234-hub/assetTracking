@@ -1,0 +1,4 @@
+# Cegah eksekusi script di folder upload — hanya file gambar yang boleh diakses
+<FilesMatch "\.(php|phtml|php3|php4|php5|pl|py|cgi)$">
+	Require all denied
+</FilesMatch>
