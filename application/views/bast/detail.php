@@ -94,11 +94,11 @@
 			</div>
 			<div class="sig-box">
 				<div class="sig-slot"><?php if ($bast['receiver_signature']): ?><img src="<?= base_url($bast['receiver_signature']) ?>" alt="TTD Penerima" style="max-height:56px;max-width:100%;"><?php else: ?>Menunggu TTD<?php endif; ?></div>
-				<?= $bast['employee_name'] ?><br><span class="muted" style="font-size:11px;"><?= $isReturn ? 'Mengembalikan' : 'Menerima' ?></span>
+				<?= $bast['employee_name'] ?><br><span class="muted" style="font-size:11px;"><?= $isReturn ? 'Penyerah (Mengembalikan)' : 'Menerima' ?></span>
 			</div>
 			<div class="sig-box">
 				<div class="sig-slot"><?php if ($bast['approver_signature']): ?><img src="<?= base_url($bast['approver_signature']) ?>" alt="TTD Atasan" style="max-height:56px;max-width:100%;"><?php else: ?>Menunggu TTD<?php endif; ?></div>
-				<?= $bast['approver_name'] ?: $company['approver_name'] ?><br><span class="muted" style="font-size:11px;">Mengetahui — <?= $bast['approver_role'] ?: ($template['approver_role'] ?: $company['approver_role']) ?></span>
+				<?= $bast['approver_name'] ?: $company['approver_name'] ?><br><span class="muted" style="font-size:11px;"><?= $isReturn ? 'Team Leader — Mengetahui' : 'Mengetahui — '.($bast['approver_role'] ?: ($template['approver_role'] ?: $company['approver_role'])) ?></span>
 			</div>
 		</div>
 
@@ -107,7 +107,16 @@
 			<?php if ( ! $bast['admin_signature']): ?>
 				<a href="<?= site_url('bast/ttd-admin/'.$bast['id']) ?>" class="btn btn-soft btn-sm"><?= ic('edit',13) ?> TTD Sebagai Admin</a>
 			<?php endif; ?>
-			<?php if ($bast['signature_token']): ?>
+			<?php if ($isReturn): ?>
+				<?php if ($bast['receiver_token']): ?>
+				<button type="button" class="btn btn-ghost btn-sm" onclick="copyLink('<?= site_url('ttd/'.$bast['receiver_token'].'/penerima') ?>', this)"><?= ic('mail',13) ?> Salin Link TTD Penyerah</button>
+				<a href="<?= site_url('bast/token-ulang/'.$bast['id'].'/penyerah') ?>" class="btn btn-soft btn-sm" onclick="return confirm('Buat ulang token TTD Penyerah?<?= $bast['signed_by_receiver'] ? ' Tanda tangan yang sudah ada akan dihapus.' : '' ?> Link lama tidak berlaku lagi.');"><?= ic('refresh',13) ?> Token Ulang Penyerah</a>
+				<?php endif; ?>
+				<?php if ($bast['approver_token']): ?>
+				<button type="button" class="btn btn-ghost btn-sm" onclick="copyLink('<?= site_url('ttd/'.$bast['approver_token'].'/atasan') ?>', this)"><?= ic('mail',13) ?> Salin Link TTD Team Leader</button>
+				<a href="<?= site_url('bast/token-ulang/'.$bast['id'].'/teamleader') ?>" class="btn btn-soft btn-sm" onclick="return confirm('Buat ulang token TTD Team Leader?<?= $bast['signed_by_approver'] ? ' Tanda tangan yang sudah ada akan dihapus.' : '' ?> Link lama tidak berlaku lagi.');"><?= ic('refresh',13) ?> Token Ulang Team Leader</a>
+				<?php endif; ?>
+			<?php elseif ($bast['signature_token']): ?>
 				<button type="button" class="btn btn-ghost btn-sm" onclick="copyLink('<?= site_url('ttd/'.$bast['signature_token'].'/penerima') ?>', this)"><?= ic('mail',13) ?> Salin Link TTD Penerima</button>
 				<button type="button" class="btn btn-ghost btn-sm" onclick="copyLink('<?= site_url('ttd/'.$bast['signature_token'].'/atasan') ?>', this)"><?= ic('mail',13) ?> Salin Link TTD Atasan</button>
 			<?php endif; ?>
@@ -126,7 +135,7 @@
 			<div class="t-item"><div class="t-dot"><?= ic('mail',10) ?></div><div class="t-date"><?= format_tanggal($bast['updated_at'], true) ?></div><div class="t-title">BAST dikirim untuk TTD</div><div class="t-desc">Dikirim ke email penerima &amp; atasan</div></div>
 			<?php endif; ?>
 			<?php if ($bast['signed_by_receiver']): ?>
-			<div class="t-item"><div class="t-dot"><?= ic('filesig',10) ?></div><div class="t-title">Ditandatangani penerima</div><div class="t-desc"><?= $bast['employee_name'] ?> menandatangani secara digital</div></div>
+			<div class="t-item"><div class="t-dot"><?= ic('filesig',10) ?></div><div class="t-title"><?= $isReturn ? 'Ditandatangani penyerah' : 'Ditandatangani penerima' ?></div><div class="t-desc"><?= $bast['employee_name'] ?> menandatangani secara digital</div></div>
 			<?php endif; ?>
 			<?php if ($bast['signed_by_approver']): ?>
 			<div class="t-item"><div class="t-dot"><?= ic('filesig',10) ?></div><div class="t-title">Ditandatangani atasan</div><div class="t-desc"><?= $bast['approver_name'] ?> menyetujui</div></div>

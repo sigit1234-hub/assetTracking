@@ -43,6 +43,8 @@ class Bast_model extends CI_Model {
 		if ( ! empty($filters['status'])) $this->db->where('bast.status', $filters['status']);
 		if ( ! empty($filters['group_id'])) $this->db->where('employees.group_id', $filters['group_id']);
 		if ( ! empty($filters['laptop_id'])) $this->db->where('bast.laptop_id', $filters['laptop_id']);
+		if ( ! empty($filters['handover_type'])) $this->db->where('bast.handover_type', $filters['handover_type']);
+		if ( ! empty($filters['exclude_type'])) $this->db->where('bast.handover_type !=', $filters['exclude_type']);
 		if ( ! empty($filters['q']))
 		{
 			$q = $filters['q'];
@@ -86,10 +88,21 @@ class Bast_model extends CI_Model {
 		return $this->db->where('status', $status)->count_all_results($this->table);
 	}
 
-	public function status_summary()
+	/**
+	 * Ringkasan jumlah BAST per status.
+	 * $type: NULL = semua tipe, 'pengembalian' = hanya BAST Pengembalian,
+	 *        '!pengembalian' = semua BAST selain Pengembalian (serah terima & sementara).
+	 */
+	public function status_summary($type = NULL)
 	{
 		$out = [];
-		foreach (['draft','menunggu','aktif','selesai','dibatalkan'] as $s) $out[$s] = $this->count_by_status($s);
+		foreach (['draft','menunggu','aktif','selesai','dibatalkan'] as $s)
+		{
+			$this->db->where('status', $s);
+			if ($type === 'pengembalian') $this->db->where('handover_type', 'pengembalian');
+			elseif ($type === '!pengembalian') $this->db->where('handover_type !=', 'pengembalian');
+			$out[$s] = $this->db->count_all_results($this->table);
+		}
 		return $out;
 	}
 
@@ -113,8 +126,53 @@ class Bast_model extends CI_Model {
 	public function get_by_token($token)
 	{
 		$this->base_select();
+		$this->db->group_start();
 		$this->db->where('bast.signature_token', $token);
-		return $this->db->get()->row_array();
+		$this->db->or_where('bast.receiver_token', $token);
+		$this->db->or_where('bast.approver_token', $token);
+		$this->db->group_end();
+		$row = $this->db->get()->row_array();
+		if ($row)
+		{
+			// Token khusus peran hanya berlaku untuk perannya sendiri; token lama (signature_token) berlaku untuk keduanya
+			$row['token_role'] = ($token === $row['receiver_token']) ? 'penerima' : (($token === $row['approver_token']) ? 'atasan' : NULL);
+		}
+		return $row;
+	}
+
+	/**
+	 * Pastikan token TTD per peran tersedia (penyerah/penerima & Team Leader/atasan).
+	 */
+	public function ensure_role_tokens($id)
+	{
+		$b = $this->db->get_where($this->table, ['id' => $id])->row_array();
+		if ( ! $b) return;
+		$upd = [];
+		if (empty($b['receiver_token'])) $upd['receiver_token'] = bin2hex(random_bytes(20));
+		if (empty($b['approver_token'])) $upd['approver_token'] = bin2hex(random_bytes(20));
+		if ($upd) $this->update($id, $upd);
+	}
+
+	/**
+	 * Buat ulang token TTD untuk satu peran ('penerima' = penyerah, 'atasan' = Team Leader).
+	 * Link lama otomatis tidak berlaku. Jika peran tsb sudah TTD, tanda tangannya dikosongkan
+	 * supaya dapat menandatangani ulang, dan status BAST kembali ke 'menunggu'.
+	 */
+	public function regenerate_role_token($id, $role)
+	{
+		if ( ! in_array($role, ['penerima', 'atasan'], TRUE)) return FALSE;
+		$token = bin2hex(random_bytes(20));
+		$data = ($role === 'penerima')
+			? ['receiver_token' => $token, 'signed_by_receiver' => 0, 'receiver_signature' => NULL, 'receiver_signed_at' => NULL]
+			: ['approver_token' => $token, 'signed_by_approver' => 0, 'approver_signature' => NULL, 'approver_signed_at' => NULL];
+
+		$b = $this->db->get_where($this->table, ['id' => $id])->row_array();
+		if ( ! $b) return FALSE;
+		$was_signed = ($role === 'penerima') ? $b['signed_by_receiver'] : $b['signed_by_approver'];
+		if ($was_signed && in_array($b['status'], ['aktif', 'selesai'], TRUE)) $data['status'] = 'menunggu';
+
+		$this->update($id, $data);
+		return $token;
 	}
 
 	public function generate_signature_token($id)
@@ -161,7 +219,7 @@ class Bast_model extends CI_Model {
 		$willBeReceiverSigned = $role === 'penerima' ? TRUE : (bool) $bast['signed_by_receiver'];
 		$willBeApproverSigned = $role === 'atasan' ? TRUE : (bool) $bast['signed_by_approver'];
 
-		if ($willBeReceiverSigned && $willBeApproverSigned) $data['status'] = 'aktif';
+		if ($willBeReceiverSigned && $willBeApproverSigned) $data['status'] = ($bast['handover_type'] === 'pengembalian') ? 'selesai' : 'aktif';
 		elseif ($willBeReceiverSigned || $willBeApproverSigned) $data['status'] = 'menunggu';
 
 		return $this->update($id, $data);
@@ -194,13 +252,14 @@ class Bast_model extends CI_Model {
 			'condition_on_handover' => $overall_condition,
 			'checklist'             => json_encode($checklist),
 			'notes'                 => $notes,
-			'status'                => 'selesai',
-			'signed_by_receiver'    => 1,
-			'signed_by_approver'    => 1,
+			'status'                => 'menunggu',
+			'signed_by_receiver'    => 0,
+			'signed_by_approver'    => 0,
 			'created_by'            => $created_by,
 		];
 		$id = $this->create($data);
 		$this->generate_signature_token($id);
+		$this->ensure_role_tokens($id);
 		return $id;
 	}
 }

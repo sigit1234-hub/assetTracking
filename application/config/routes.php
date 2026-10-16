@@ -42,6 +42,7 @@ $route['penggunaan/proses-pengembalian'] = 'usage/process_return';
 
 /* BAST */
 $route['bast'] = 'bast/index';
+$route['bast/pengembalian'] = 'bast/returns';
 $route['bast/buat'] = 'bast/create';
 $route['bast/simpan-step1'] = 'bast/save_step1';
 $route['bast/simpan-step2'] = 'bast/save_step2';
@@ -50,6 +51,7 @@ $route['bast/finalisasi'] = 'bast/finalize';
 $route['bast/preview/(:num)'] = 'bast/preview/$1';
 $route['bast/detail/(:num)'] = 'bast/detail/$1';
 $route['bast/pdf/(:num)'] = 'bast/pdf/$1';
+$route['bast/token-ulang/(:num)/(:any)'] = 'bast/regenerate_token/$1/$2';
 $route['bast/kirim-ttd/(:num)'] = 'bast/send_for_signature/$1';
 $route['bast/kirim-email/(:num)'] = 'bast/send_email/$1';
 $route['bast/ttd-admin/(:num)'] = 'bast/sign_admin_page/$1';

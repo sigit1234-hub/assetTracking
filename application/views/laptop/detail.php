@@ -67,7 +67,8 @@
 				<div class="t-date"><?= format_tanggal($u['start_date']) ?></div>
 				<div class="t-title"><?= $u['employee_name'] ?: '—' ?> menggunakan laptop ini</div>
 				<div class="t-desc">
-					<?= $u['bast_number'] ? 'BAST: '.$u['bast_number'].' · ' : '' ?>
+					<?php if ($u['bast_number']): ?>BAST Serah Terima: <a href="<?= site_url('bast/detail/'.$u['bast_id']) ?>"><b><?= $u['bast_number'] ?></b></a> · <?php endif; ?>
+					<?php if ($u['return_bast_number']): ?>BAST Pengembalian: <a href="<?= site_url('bast/detail/'.$u['return_bast_id']) ?>"><b><?= $u['return_bast_number'] ?></b></a> · <?php endif; ?>
 					<?= $u['end_date'] ? 'Dikembalikan '.format_tanggal($u['end_date']) : (($u['is_active']) ? 'Masih berlangsung' : '') ?>
 				</div>
 			</div>

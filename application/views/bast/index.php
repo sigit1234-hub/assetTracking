@@ -9,11 +9,11 @@
 <div class="stat-grid cols-4">
 	<?php
 	$s = $summary;
-	function bstat($icon,$label,$num,$color){
+	if ( ! function_exists('bstat')) { function bstat($icon,$label,$num,$color){
 		$colors=['green'=>['var(--green-soft)','var(--green)'],'amber'=>['var(--amber-soft)','var(--amber)'],'slate'=>['var(--slate-soft)','var(--slate)'],'red'=>['var(--red-soft)','var(--red)']];
 		$c=$colors[$color];
 		echo '<div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:'.$c[0].';color:'.$c[1].';">'.ic($icon,16).'</div></div><div><div class="stat-num">'.$num.'</div><div class="stat-label">'.$label.'</div></div></div>';
-	}
+	} }
 	bstat('filesig','BAST Aktif',$s['aktif'],'green');
 	bstat('clock','Menunggu TTD',$s['menunggu'],'amber');
 	bstat('check','Selesai',$s['selesai'],'slate');

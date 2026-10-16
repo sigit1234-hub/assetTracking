@@ -56,7 +56,6 @@
                     <div class="field mb-14">
                         <label>Kata Sandi</label>
                         <input class="input" type="password" name="password" placeholder="Masukkan kata sandi" required>
-                        <span class="hint">Akun demo: password123</span>
                     </div>
                     <div class="flex justify-between items-center mb-20" style="font-size:12.5px;">
                         <label class="flex items-center gap-8"><input type="checkbox" checked> Ingat saya</label>

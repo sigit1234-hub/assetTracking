@@ -36,6 +36,13 @@ class Sign extends CI_Controller {
 			return;
 		}
 
+		// Token khusus peran tidak boleh dipakai untuk peran lain
+		if ( ! empty($bast['token_role']) && $bast['token_role'] !== $role)
+		{
+			echo $this->load->view('sign/invalid', ['message' => 'Link tanda tangan tidak sesuai dengan peran Anda.'], TRUE);
+			return;
+		}
+
 		$already_signed = ($role === 'penerima') ? $bast['signed_by_receiver'] : $bast['signed_by_approver'];
 
 		$company = [
@@ -48,7 +55,7 @@ class Sign extends CI_Controller {
 		$data = [
 			'bast'           => $bast,
 			'role'           => $role,
-			'role_label'     => $role === 'penerima' ? 'Penerima Perangkat' : 'Atasan / Mengetahui',
+			'role_label'     => $this->role_label($bast, $role),
 			'signer_name'    => $role === 'penerima' ? $bast['employee_name'] : ($bast['approver_name'] ?: $company['approver_name']),
 			'already_signed' => $already_signed,
 			'company'        => $company,
@@ -56,6 +63,15 @@ class Sign extends CI_Controller {
 		];
 
 		$this->load->view('sign/pad', $data);
+	}
+
+	protected function role_label($bast, $role)
+	{
+		if ($bast['handover_type'] === 'pengembalian')
+		{
+			return $role === 'penerima' ? 'Penyerah (Yang Mengembalikan Perangkat)' : 'Team Leader / Mengetahui';
+		}
+		return $role === 'penerima' ? 'Penerima Perangkat' : 'Atasan / Mengetahui';
 	}
 
 	public function submit()
@@ -73,6 +89,12 @@ class Sign extends CI_Controller {
 
 		$bast = $this->Bast_model->get_by_token($token);
 		if ( ! $bast)
+		{
+			show_404();
+			return;
+		}
+
+		if ( ! empty($bast['token_role']) && $bast['token_role'] !== $role)
 		{
 			show_404();
 			return;

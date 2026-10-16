@@ -1,6 +1,5 @@
 <?php
-
-defined('BASEPATH') or exit('No direct script access allowed');
+defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
  * =====================================================================
@@ -40,15 +39,15 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 $config['protocol']    = 'smtp';
 $config['smtp_host']   = 'smtp.gmail.com';
-$config['smtp_user']   = 'isc33642@gmail.com';   // <-- ganti dengan email Gmail pengirim
-$config['smtp_pass']   = 'drpi igpv xdgf svtz';            // <-- ganti dengan App Password 16 digit (bukan password biasa)
+$config['smtp_user']   = 'alamat-gmail-anda@gmail.com';   // <-- ganti dengan email Gmail pengirim
+$config['smtp_pass']   = 'xxxx xxxx xxxx xxxx';            // <-- ganti dengan App Password 16 digit (bukan password biasa)
 $config['smtp_port']   = 465;
 $config['smtp_crypto'] = 'ssl';
-$config['smtp_timeout'] = 30;
+$config['smtp_timeout']= 30;
 $config['mailtype']    = 'html';
 $config['charset']     = 'utf-8';
 $config['newline']     = "\r\n";
-$config['wordwrap']    = true;
+$config['wordwrap']    = TRUE;
 
 /**
  * Alternatif: jika port 465 (SSL) diblokir oleh firewall/hosting Anda,

@@ -16,29 +16,24 @@
 	?>
 </div>
 
-<form method="get" class="filter-bar">
-	<div class="search-bar" style="width:280px;background:var(--bg);"><?= ic('search',15) ?><input type="text" name="q" value="<?= htmlspecialchars($filters['q']) ?>" placeholder="Cari nama pengguna / Asset ID"></div>
-	<select class="select" name="group_id" onchange="this.form.submit()">
-		<option value="">Semua Grup</option>
-		<?php foreach ($groups as $d): ?><option value="<?= $d['id'] ?>" <?= $filters['group_id']==$d['id']?'selected':'' ?>><?= $d['name'] ?></option><?php endforeach; ?>
-	</select>
-	<button type="submit" class="btn btn-ghost"><?= ic('filter',15) ?> Terapkan</button>
-</form>
+<?php $this->load->view('usage/_filter', ['filters'=>$filters,'groups'=>$groups,'brands'=>$brands,'show_kondisi'=>TRUE]); ?>
+<?php if (array_filter($filters)): ?><p class="cell-sub" style="margin:0 0 10px;">Menampilkan <b><?= count($usages) ?></b> hasil sesuai filter.</p><?php endif; ?>
 
 <div class="table-wrap">
 	<table>
-		<thead><tr><th>Asset ID</th><th>Pengguna</th><th>Grup</th><th>Laptop</th><th>Tgl Serah Terima</th><th>Estimasi Kembali</th><th>Status</th><th>BAST</th><th>Aksi</th></tr></thead>
+		<thead><tr><th>Asset ID</th><th>Serial Number</th><th>Pengguna</th><th>Grup</th><th>Laptop</th><th>Tgl Serah Terima</th><th>Estimasi Kembali</th><th>Status</th><th>BAST</th><th>Aksi</th></tr></thead>
 		<tbody>
 		<?php if (empty($usages)): ?>
-			<tr><td colspan="9"><div class="empty-state"><div class="empty-ic"><?= ic('users',22) ?></div><p>Tidak ada laptop yang sedang digunakan.</p></div></td></tr>
+			<tr><td colspan="10"><div class="empty-state"><div class="empty-ic"><?= ic('users',22) ?></div><p>Tidak ada laptop yang cocok dengan filter.</p></div></td></tr>
 		<?php else: foreach ($usages as $u):
 			$overdue = $u['expected_return_date'] && strtotime($u['expected_return_date']) < strtotime(date('Y-m-d'));
 		?>
 			<tr>
 				<td><span class="asset-tag"><?= $u['asset_id'] ?></span></td>
-				<td class="cell-main"><?= $u['employee_name'] ?></td>
+				<td class="cell-sub"><?= htmlspecialchars($u['serial_number']) ?></td>
+				<td class="cell-main"><?= htmlspecialchars($u['employee_name']) ?><div class="cell-sub"><?= htmlspecialchars($u['employee_nik']) ?></div></td>
 				<td><?= $u['group_name'] ?></td>
-				<td><?= $u['model'] ?></td>
+				<td><?= htmlspecialchars(trim($u['brand_name'].' '.$u['model'])) ?></td>
 				<td class="cell-sub"><?= format_tanggal($u['start_date']) ?></td>
 				<td class="cell-sub"><?= $u['expected_return_date'] ? format_tanggal($u['expected_return_date']) : 'Aset Tetap' ?></td>
 				<td><?= status_badge($overdue ? 'overdue' : $u['laptop_status']) ?></td>

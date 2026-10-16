@@ -30,6 +30,7 @@
 			]],
 			['key'=>'bast','label'=>'BAST','icon'=>'filesig','children'=>[
 				['url'=>'bast','label'=>'Daftar BAST'],
+				['url'=>'bast/pengembalian','label'=>'BAST Pengembalian'],
 				['url'=>'bast/buat','label'=>'Buat BAST Baru'],
 				['url'=>'bast/buat?mode=sementara','label'=>'Buat BAST Sementara'],
 				['url'=>'penggunaan/pengembalian','label'=>'Proses Pengembalian'],
